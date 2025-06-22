@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import json
 import logging
@@ -110,9 +111,8 @@ def aggregate_by_card(df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
 
 
 def fetch_sp500_prices(tickers: list[str]) -> dict[str, float]:
-    """
-    Берёт цены акций через Alpha Vantage API (ключ из .env).
-    """
+    """Берёт цены акций через Alpha Vantage API (ключ из .env)"""
+
     if not STOCK_PRICES_API_KEY:
         raise RuntimeError("Не найден STOCK_PRICES_API_KEY в .env")
 

@@ -1,19 +1,15 @@
+from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from utils import (
-    load_transactions,
-    aggregate_by_card,
-    fetch_fx_rates,
-    fetch_sp500_prices,
-    compose_home_response,
-)
+from utils import aggregate_by_card, compose_home_response, fetch_fx_rates, fetch_sp500_prices, load_transactions
 
 DATA_FILE = Path(__file__).resolve().parents[1] / "data" / "operations.xlsx"
 FX_SYMBOLS = ["USD", "EUR"]
 SP500_TICKERS = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL"]
+
 
 def home(date_time_str: str) -> Dict[str, Any]:
     """

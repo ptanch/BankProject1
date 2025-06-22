@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import time
 from dotenv import load_dotenv
 from datetime import datetime
 from pathlib import Path
@@ -15,10 +16,12 @@ load_dotenv()
 ALPHAVANTAGE_URL = "https://www.alphavantage.co/query"
 EXCHANGE_RATES_API_KEY = os.getenv("EXCHANGE_RATES_API_KEY")
 STOCK_PRICES_API_KEY = os.getenv("STOCK_PRICES_API_KEY")
+ALPHAVANTAGE_FUNCTION_DAILY = "TIME_SERIES_DAILY"
 
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s – %(message)s", handlers=[logging.StreamHandler()]
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s – %(message)s",
+    handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger(__name__)
 
@@ -41,8 +44,14 @@ def get_greeting(dt: datetime) -> str:
 def load_transactions(path: Path) -> pd.DataFrame:
     """Читает XLSX с операциями и приводит к DataFrame"""
     logger.info("Читаю файл транзакций: %s", path)
-    df = pd.read_excel(path, engine="openpyxl")
-    df = df.fillna("")
+    df = pd.read_excel(path, engine="openpyxl").fillna("")
+
+    column_map = {
+        "Номер карты": "card",
+        "Сумма операции": "amount",
+    }
+    df = df.rename(columns=column_map)
+
     return df
 
 
@@ -108,25 +117,34 @@ def fetch_sp500_prices(tickers: list[str]) -> dict[str, float]:
         raise RuntimeError("Не найден STOCK_PRICES_API_KEY в .env")
 
     prices = {}
-    for symbol in tickers:
-        logger.info("AlphaVantage: %s", symbol)
+    for i, symbol in enumerate(tickers, 1):
         params = {
-            "function": "time_series_daily_adjusted",
+            "function": ALPHAVANTAGE_FUNCTION_DAILY,
             "symbol": symbol,
             "apikey": STOCK_PRICES_API_KEY,
-            "output_size": "compact",
+            "outputsize": "compact",
         }
-        r = requests.get(ALPHAVANTAGE_URL, params=params, timeout=10)
-        r.raise_for_status()
-        data = r.json()
+        logger.info("AlphaVantage: %s", symbol)
 
-        time_series = data.get("time_series_daily")
-        if not time_series:
-            logger.warning("Нет данных по %s", symbol)
-            continue
+        try:
+            r = requests.get(ALPHAVANTAGE_URL, params=params, timeout=10)
+            r.raise_for_status()
+            data = r.json()
 
-        last_date = next(iter(time_series))
-        prices[symbol] = float(time_series[last_date]["4. close"])
+            series = data.get("Time Series (Daily)")
+            if not series:
+                logger.warning("Нет данных или превышен лимит по %s: %s",
+                               symbol,
+                               data.get("Note") or data.get("Error Message"))
+            else:
+                latest_day = next(iter(series))
+                prices[symbol] = float(series[latest_day]["4. close"])
+
+        except Exception as e:
+            logger.warning("Ошибка при получении данных по %s: %s", symbol, e)
+
+        if i < len(tickers):
+            time.sleep(15)
 
     return prices
 

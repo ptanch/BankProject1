@@ -1,16 +1,15 @@
 from __future__ import annotations
-import os
-import json
+
 import logging
+import os
 import time
-from dotenv import load_dotenv
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict
 
 import pandas as pd
 import requests
-
+from dotenv import load_dotenv
 
 load_dotenv()
 

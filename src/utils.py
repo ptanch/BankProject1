@@ -49,6 +49,9 @@ def load_transactions(path: Path) -> pd.DataFrame:
     column_map = {
         "Номер карты": "card",
         "Сумма операции": "amount",
+        "Дата платежа": "date",
+        "Категория": "category",
+        "Описание": "description",
     }
     df = df.rename(columns=column_map)
 

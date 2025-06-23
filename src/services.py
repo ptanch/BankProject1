@@ -5,13 +5,10 @@ import logging
 import re
 from typing import Any, Dict, List
 
-__all__ = [
-    "find_p2p_transfers",
-]
+__all__ = ["find_p2p_transfers"]
 
-
-PERSON_PATTERN = re.compile(r"^[А-ЯЁ][а-яё]+\s[А-ЯЁ]\.$", re.UNICODE)
-
+# Шаблон: Имя Ф.
+PERSON_PATTERN = re.compile(r"\b[А-ЯЁ][а-яё]+ [А-ЯЁ]\.\b", re.UNICODE)
 
 logger = logging.getLogger(__name__)
 if not logger.handlers:
@@ -23,11 +20,10 @@ if not logger.handlers:
 
 
 def find_p2p_transfers(transactions: List[Dict[str, Any]]) -> str:
-    """Фильтрует «Переводы физическим лицам» и возвращает JSON‑строку"""
+    """Фильтрует переводы физическим лицам (только имя + инициал) и возвращает JSON-строку"""
 
     logger.info("Начало поиска переводов физ. лицам: всего %d транзакций", len(transactions))
-
-    result: List[Dict[str, Any]] = []
+    result = []
 
     for trx in transactions:
         category = str(trx.get("category", "")).strip().lower()
@@ -35,11 +31,10 @@ def find_p2p_transfers(transactions: List[Dict[str, Any]]) -> str:
 
         if category != "переводы":
             continue
+        if not PERSON_PATTERN.search(description):
+            continue
 
-        if PERSON_PATTERN.match(description):
-            logger.debug("Совпадение: %s", description)
-            result.append(trx)
+        result.append(trx)
 
     logger.info("Найдено переводов физ. лицам: %d", len(result))
-
     return json.dumps(result, ensure_ascii=False, indent=2)

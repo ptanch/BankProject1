@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from utils import aggregate_by_card, compose_home_response, fetch_fx_rates, fetch_sp500_prices, load_transactions
+from src.utils import aggregate_by_card, compose_home_response, fetch_fx_rates, fetch_sp500_prices, load_transactions
 
 DATA_FILE = Path(__file__).resolve().parents[1] / "data" / "operations.xlsx"
 FX_SYMBOLS = ["USD", "EUR"]

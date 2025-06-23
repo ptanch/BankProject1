@@ -61,34 +61,35 @@ def save_report(arg: str | Callable | None = None):
 def spending_by_workday(transactions: pd.DataFrame, date: Optional[str] = None) -> Dict[str, float]:
     """Возвращает средние траты в рабочие/выходные за последние 3 месяца"""
 
-    # 1. Подготовка даты
-    ref_dt = datetime.strptime(date, "%Y-%m-%d") if date else datetime.now()
-    start_dt = ref_dt - timedelta(days=90)  # ≈ 3 месяца
+    df = transactions.copy()
 
+    # Убеждаемся, что даты в нужном формате
+    df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
+    df = df.dropna(subset=["date", "amount"])  # Удаляем строки без даты/суммы
+
+    # Если дата не указана — берем максимальную дату из данных
+    if date:
+        ref_dt = datetime.strptime(date, "%Y-%m-%d")
+    else:
+        ref_dt = df["date"].max()
+
+    start_dt = ref_dt - timedelta(days=90)
     logger.info("Формирую отчёт с %s по %s", start_dt.date(), ref_dt.date())
 
-    # 2. Приводим столбец даты к datetime
-    df = transactions.copy()
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df = df.dropna(subset=["date", "amount"])  # удаляем строки без даты/суммы
-
-    # 3. Фильтр по периоду
-    mask_period = (df["date"] >= start_dt) & (df["date"] <= ref_dt)
-    df_period = df.loc[mask_period]
-
+    # Фильтрация по диапазону
+    df_period = df[(df["date"] >= start_dt) & (df["date"] <= ref_dt)]
     if df_period.empty:
         logger.warning("Нет данных за указанный период")
         return {"workday": 0.0, "weekend": 0.0}
 
-    # 4. Оставляем только расходы (amount < 0)
+    # Оставляем только расходы (amount < 0)
     expenses = df_period[df_period["amount"] < 0].copy()
-    expenses["amount"] = expenses["amount"].abs()  # делаем положительными
+    expenses["amount"] = expenses["amount"].abs()
 
-    # 5. Группируем по дате, считаем дневные суммы
-    daily_sum = expenses.groupby(expenses["date"].dt.date)["amount"].sum()
-    daily_sum = daily_sum.reset_index(name="total")  # date|total
+    # Сумма по дням
+    daily_sum = expenses.groupby(expenses["date"].dt.date)["amount"].sum().reset_index(name="total")
 
-    # 6. Разделяем на рабочие / выходные, считаем среднее
+    # Рабочие / выходные дни
     daily_sum["weekday"] = pd.to_datetime(daily_sum["date"]).dt.weekday
     workday_mean = daily_sum[daily_sum["weekday"] < 5]["total"].mean() or 0.0
     weekend_mean = daily_sum[daily_sum["weekday"] >= 5]["total"].mean() or 0.0

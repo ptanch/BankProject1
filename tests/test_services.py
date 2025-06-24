@@ -1,6 +1,9 @@
-import pytest
 import json
+
+import pytest
+
 from src.services import find_p2p_transfers
+
 
 @pytest.fixture
 def sample_transactions():
@@ -13,6 +16,7 @@ def sample_transactions():
         {"id": 6, "category": "Переводы", "description": "Просто текст"},
         {"id": 7, "category": "Переводы", "description": "иван п."},
     ]
+
 
 def test_find_p2p_transfers_returns_expected_transactions(sample_transactions):
     result_json = find_p2p_transfers(sample_transactions)

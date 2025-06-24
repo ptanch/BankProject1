@@ -1,9 +1,9 @@
 import json
 import logging
 import re
-import pandas as pd
 from typing import Any, Dict, List
 
+import pandas as pd
 
 __all__ = ["find_p2p_transfers"]
 
@@ -37,7 +37,6 @@ def find_p2p_transfers(transactions: List[Dict[str, Any]]) -> str:
 
     logger.info("Найдено переводов физ. лицам: %d", len(result))
 
-    # 🛠 Преобразуем Timestamp → строка (чтобы избежать ошибки сериализации)
     for trx in result:
         if isinstance(trx.get("date"), pd.Timestamp):
             trx["date"] = trx["date"].strftime("%Y-%m-%d")

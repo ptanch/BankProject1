@@ -64,7 +64,7 @@ def spending_by_workday(transactions: pd.DataFrame, date: Optional[str] = None) 
     df = transactions.copy()
 
     # Убеждаемся, что даты в нужном формате
-    df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
+    df["date"] = pd.to_datetime(df["date"], format="%d.%m.%Y", errors="coerce")
     df = df.dropna(subset=["date", "amount"])  # Удаляем строки без даты/суммы
 
     # Если дата не указана — берем максимальную дату из данных

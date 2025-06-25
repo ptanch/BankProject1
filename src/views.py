@@ -28,6 +28,6 @@ def home(date_time_str: str) -> Dict[str, Any]:
     return compose_home_response(dt_obj, cards_info, fx, stocks)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # быстрая проверка
     print(json.dumps(home(datetime.now().strftime("%Y-%m-%d %H:%M:%S")), ensure_ascii=False, indent=2))

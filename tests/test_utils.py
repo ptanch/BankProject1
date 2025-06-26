@@ -1,10 +1,10 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-import pytest
 import pandas as pd
+import pytest
 
-from src.utils import fetch_fx_rates, fetch_sp500_prices, get_greeting, aggregate_by_card, compose_home_response
+from src.utils import aggregate_by_card, compose_home_response, fetch_fx_rates, fetch_sp500_prices, get_greeting
 
 
 def test_get_greeting_evening():
